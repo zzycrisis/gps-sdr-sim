@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>3D地图获取经纬度</title>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/main1119.css"/>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: 'da526af08e2160cdefcb97b0777bbc1e',
+        }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=1cffd49168de1222dec4db249ddf8096"></script>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <style>
+        #coordinatesList {
+            position: absolute;
+            top: 150px;
+            left: 10px;
+            width: 200px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #coordinatesList h4 {
+            margin-top: 0;
+        }
+
+        #coords {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #coords li {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div id="container" class="map" style="width:100%; height:100%; position: absolute; right: 0;"></div>
+<div id="coordinatesList">
+    <h4>点击坐标列表：</h4>
+    <ul id="coords"></ul>
+</div>
+<div class="input-card">
+    <h4>左击获取经纬度：</h4>
+    <div class="input-item">
+      <input type="text" readonly="true" id="lnglat">
+    </div>
+    <button onclick="sendMes()">发送经纬度</button>
+</div>
+<div id="myPageTop">
+    <table>
+        <tr>
+            <td>
+                <label>请输入关键字：</label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input id="tipinput"/>
+            </td>
+        </tr>
+    </table>
+</div>
+<script type="text/javascript" src="D:/python/pyQt/spoofing/qwebchannel.js"></script>
+<script type="text/javascript">
+    // 存储点击坐标的数组
+    var coordinatesArray = [];
+
+    //地图加载
+    var map = new AMap.Map('container', {
+        rotateEnable:true,
+        resizeEnable: true,
+        pitchEnable:true,
+        zoom: 17,
+        pitch: 50,
+        rotation: -15,
+        viewMode:'3D',
+        zooms:[2,20]
+    });
+
+    //输入提示
+    var autoOptions = {
+        input: "tipinput"
+    };
+
+    AMap.plugin(['AMap.PlaceSearch','AMap.AutoComplete'], function(){
+        var auto = new AMap.AutoComplete(autoOptions);
+        var placeSearch = new AMap.PlaceSearch({
+            map: map
+        });
+        auto.on("select", select);
+        function select(e) {
+            placeSearch.setCity(e.poi.adcode);
+            placeSearch.search(e.poi.name);
+        }
+    });
+
+    // 为地图注册click事件获取鼠标点击出的经纬度坐标
+    map.on('click', function(e) {
+        var coords = e.lnglat.getLng() + ',' + e.lnglat.getLat();
+        coordinatesArray.push(coords); // 将坐标添加到数组中
+        document.getElementById("lnglat").value = coords;
+        updateCoordsList(); // 更新坐标列表显示
+    });
+
+    // 更新坐标列表显示
+    function updateCoordsList() {
+        var coordsList = document.getElementById("coords");
+        coordsList.innerHTML = ""; // 清空列表
+        coordinatesArray.forEach(function(coords) {
+            var li = document.createElement("li");
+            li.textContent = coords;
+            coordsList.appendChild(li);
+        });
+    }
+
+    AMap.plugin([
+        'AMap.ControlBar',
+    ], function(){
+        map.addControl(new AMap.ControlBar());
+    });
+
+    // 接入Qt WebChannel
+    window.onload = function () {
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            window.printer = channel.objects.printer;
+        });
+    };
+
+    // 发送坐标列表到Python端
+    function sendMes() {
+        printer.testTxt(coordinatesArray.join('\n')); // 发送坐标列表
+        coordinatesArray = [];
+        updateCoordsList();
+    }
+
+    //鼠标样式
+    map.setDefaultCursor("crosshair");
+
+</script>
+</body>
+</html>
