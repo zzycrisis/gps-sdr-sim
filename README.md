@@ -9,9 +9,11 @@
 
 `pip install PyQt5-tools -i https://pypi.tuna.tsinghua.edu.cn/simple`
 
-3. 安装PyQt-Fluent-Widgets轻量版 详细内容参考(https://blog.csdn.net/zhiyiYo/article/details/131328168)
+3. 安装PyQt-Fluent-Widgets轻量版 
 
 `pip install PyQt-Fluent-Widgets -i https://pypi.org/simple/`
+
+详细内容参考(https://blog.csdn.net/zhiyiYo/article/details/131328168)
 
 ## 需要修改的绝对路径
 1. test.html 47行和dynamic.html中71行的qwebchannel.js
